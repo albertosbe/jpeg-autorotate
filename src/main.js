@@ -20,6 +20,7 @@ m.errors.rotate_file = 'rotate_file'
 m.rotate = function(path_or_buffer, options, module_callback)
 {
     var quality = typeof options === 'object' && typeof options.quality !== 'undefined' ? parseInt(options.quality) : 100
+    var removeThumbnail = typeof options === 'object' && typeof options.removeThumbnail !== 'undefined' ? options.removeThumbnail : false
     quality = !isNaN(quality) && quality >= 0 && quality <= 100 ? quality : 100
     module_callback = typeof module_callback === 'function' ? module_callback : function(){}
 
@@ -99,6 +100,11 @@ m.rotate = function(path_or_buffer, options, module_callback)
      */
     function _rotateThumbnail(callback)
     {
+        if (removeThumbnail)
+        {
+            callback(null, {buffer: null, width: 0, height: 0})
+            return
+        }
         if (typeof jpeg_exif_data['thumbnail'] === 'undefined' || jpeg_exif_data['thumbnail'] === null)
         {
             callback(null, {buffer: null, width: 0, height: 0})
@@ -131,7 +137,11 @@ m.rotate = function(path_or_buffer, options, module_callback)
         {
             jpeg_exif_data['Exif'][piexif.ExifIFD.PixelYDimension] = images.image.height
         }
-        if (images.thumbnail.buffer !== null)
+        if (removeThumbnail)
+        {
+            Reflect.deleteProperty(jpeg_exif_data, 'thumbnail')
+        }
+        else if (images.thumbnail.buffer !== null)
         {
             jpeg_exif_data['thumbnail'] = images.thumbnail.buffer.toString('binary')
         }
