@@ -145,9 +145,16 @@ m.rotate = function(path_or_buffer, options, module_callback)
         {
             jpeg_exif_data['thumbnail'] = images.thumbnail.buffer.toString('binary')
         }
-        var exif_bytes = piexif.dump(jpeg_exif_data)
-        var updated_jpeg_buffer = new Buffer(piexif.insert(exif_bytes, images.image.buffer.toString('binary')), 'binary')
-        module_callback(null, updated_jpeg_buffer, jpeg_orientation)
+        try
+        {
+            var exif_bytes = piexif.dump(jpeg_exif_data)
+            var updated_jpeg_buffer = new Buffer(piexif.insert(exif_bytes, images.image.buffer.toString('binary')), 'binary')
+            module_callback(null, updated_jpeg_buffer, jpeg_orientation)
+        }
+        catch (saveError)
+        {
+            module_callback(new CustomError(m.errors.rotate_file, 'Could not rotate image (' + saveError.message + ')'), null, null)
+        }
     }
 
 }
